@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFECB3"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:text="Menu"
+        android:textStyle="bold"
+        android:textColor="#F9A825"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="50dp"
+
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/step_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btnstep"
+            android:background="@android:color/transparent"
+            />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/heat_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btnheat"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="left">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="계단 조절"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="90dp"
+            android:layout_marginRight="40dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="수면 온도 조절"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/eat_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btneat"
+            android:background="@android:color/transparent"
+            />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/play_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btnplay"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="left">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="체중 관리"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="90dp"
+            android:layout_marginRight="70dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="운동 관리"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/health_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btnhealth"
+            android:background="@android:color/transparent"
+            />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/info_menu"
+            android:adjustViewBounds="true"
+            android:id="@+id/btninfo"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="left">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="건강 관리"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="90dp"
+            android:layout_marginRight="70dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="정보 관리"
+            android:textColor="#1D2D88"
+            android:textSize="20dp"
+            android:layout_marginBottom="5dp"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
