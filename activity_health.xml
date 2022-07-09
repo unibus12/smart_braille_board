@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFECB3"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:text="건강 관리"
+        android:textStyle="bold"
+        android:textColor="#F9A825"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="50dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="배뇨 분석"
+        android:layout_marginBottom="20dp"
+        android:textSize="30dp"
+        android:textColor="#FFB300"
+        android:textStyle="bold"
+        />
+
+    <LinearLayout
+        android:layout_width="320dp"
+        android:layout_height="220dp"
+        android:background="@drawable/chart_back"
+        android:layout_marginBottom="20dp"
+        android:gravity="center">
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/linecharthealth"
+            android:layout_width="300dp"
+            android:layout_height="200dp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30dp"
+        android:text="위험 단계"
+        android:textStyle="bold"
+        android:textColor="#FFB300"
+        android:layout_marginBottom="10dp"
+        />
+
+    <TextView
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:text="양호"
+        android:id="@+id/urgent_step"
+        android:textStyle="bold"
+        android:textColor="#ffffff"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/shape_list"
+        android:gravity="center"
+        android:paddingVertical="10dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30dp"
+        android:text="예방 대책"
+        android:textStyle="bold"
+        android:textColor="#FFB300"
+        android:layout_marginBottom="10dp"
+        />
+
+    <TextView
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:text="지속적인 모니터링이 필요합니다."
+        android:id="@+id/btnrecommend"
+        android:textStyle="bold"
+        android:textColor="#ffffff"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/shape_list"
+        android:gravity="center"
+        android:paddingVertical="10dp"
+        />
+
+</LinearLayout>
