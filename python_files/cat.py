@@ -21,6 +21,71 @@ temp_pin = 18 # GPIO.BOARD = 12
 GPIO.setup(temp_pin, GPIO.OUT)
 GPIO.output(temp_pin, False)
 
+# hx711
+EMULATE_HX711=False
+
+if not EMULATE_HX711:
+	import RPi.GPIO as GPIO
+	from hx711 import HX711
+else:
+	from emulated_hx711 import HX711
+
+def cleanAndExit():
+	print("Cleaning...")
+	if not EMULATE_HX711:
+		GPIO.cleanup()
+		print("Bye!")
+		sys.exit()
+
+hx1 = HX711(24,9) # 5kg
+#hx2 = HX711(25,11) # 5kg
+#hx3 = HX711(5,6) # 10kg
+hx4 = HX711(20,21) # 10kg
+
+hx1.set_reading_format("MSB", "MSB")
+#hx2.set_reading_format("MSB", "MSB")
+#hx3.set_reading_format("MSB", "MSB")
+hx4.set_reading_format("MSB", "MSB")
+
+hx1.set_reference_unit(466) # 5kg 466
+#hx2.set_reference_unit(1) # 5kg 466
+#hx3.set_reference_unit(248) # 10kg 248
+hx4.set_reference_unit(248) # 10kg 248
+
+hx1.reset()
+#hx2.reset()
+#hx3.reset()
+hx4.reset()
+
+hx1.tare()
+#hx2.tare()
+#hx3.tare()
+hx4.tare()
+
+print("Tare done! Add weight now...")
+
+def hx711get():
+	val1 = hx1.get_weight(5)
+	#val2 = hx2.get_weight(5)
+	#val3 = hx3.get_weight(5)
+	val4 = hx4.get_weight(5)
+
+	print('val1 = ', val1)
+	#print('val2 = ', val2)
+	#print('val3 = ', val3)
+	print('val4 = ', val4)
+
+	hx1.power_down()
+	hx1.power_up()
+	#hx2.power_down()
+	#hx2.power_up()
+	#hx3.power_down()
+	#hx3.power_up()
+	hx4.power_down()
+	hx4.power_up()
+
+	time.sleep(0.1)
+
 # 통신 정보 설정
 IP = ''
 PORT = 35000
@@ -308,12 +373,13 @@ def temp_mode():
 while True:
 	try:
 		#temp_mode()
-		pass
-	except KeyboardInterrupt:
-		# Ctrl + C
-		GPIO.cleanup()
-		sys.exit()
+		hx711get()
+		#pass
+	except (KeyboardInterrupt, SystemExit):
+		# Ctrl + c
+		cleanAndExit()
+'''
 	except:
 		print("problem!!")
-
+'''
 bus.close()
