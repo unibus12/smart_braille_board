@@ -14,21 +14,43 @@
         android:text="수면 온도 설정"
         android:textStyle="bold"
         android:textColor="#F9A825"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="50dp"
         android:layout_marginTop="50dp"
 
         />
 
     <ImageView
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:src="@drawable/tem"
-        android:layout_marginBottom="20dp"/>
+        android:id="@+id/tempImage"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/cold"
+        android:layout_marginBottom="30dp"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/temp_data"
+        android:layout_marginBottom="30dp"
+        android:text="현재 기온 : 33도씨"
+        android:textColor="#FFB300"
+        android:textStyle="bold"
+        android:textSize="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/temp_data1"
+        android:layout_marginBottom="50dp"
+        android:layout_gravity="center"
+        android:text="적정 온도입니다."
+        android:textColor="#FFB300"
+        android:textStyle="bold"
+        android:textSize="30dp"/>
 
     <Button
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="OFF"
+        android:text="ON"
         android:id="@+id/btnheatch"
         android:background="@drawable/shape_list"
         android:textColor="#FFFFFF"
