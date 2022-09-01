@@ -22,7 +22,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="캣휠 운동 횟수"
+        android:text="낚싯대 놀이 횟수"
         android:layout_marginBottom="20dp"
         android:textSize="30dp"
         android:textColor="#FFB300"
@@ -40,7 +40,7 @@
 
     <LinearLayout
         android:layout_width="320dp"
-        android:layout_height="320dp"
+        android:layout_height="270dp"
         android:background="@drawable/chart_back"
         android:layout_marginBottom="20dp"
         android:gravity="center">
@@ -48,8 +48,37 @@
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/linechartplay"
             android:layout_width="300dp"
-            android:layout_height="300dp" />
+            android:layout_height="250dp" />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="간식"
+            android:textColor="#FFB300"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:layout_marginVertical="5dp"/>
+
+        <Button
+            android:id="@+id/btnnofeed"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/shape_list"
+            android:paddingVertical="10dp"
+            android:text="주기"
+            android:textColor="#FFFFFF"
+            android:textSize="20dp"
+            android:layout_gravity="center"/>
     </LinearLayout>
 
 </LinearLayout>
