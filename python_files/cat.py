@@ -5,12 +5,29 @@ import RPi.GPIO as GPIO
 import socket
 import threading
 
+# temp
+import time
+from smbus2 import SMBus
+from mlx90614 import MLX90614
+bus=SMBus(1)
+sensor=MLX90614(bus, address=0x5A)
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+
+# mlx90614 : GPIO.BOARD SDA : 3, SCL : 5
+# Connect check : sudo i2cdetect -y 1
+temp_pin = 18 # GPIO.BOARD = 12
+GPIO.setup(temp_pin, GPIO.OUT)
+GPIO.output(temp_pin, False)
+
 # 통신 정보 설정
 IP = ''
 PORT = 35000
 SIZE = 1024
 ADDR = (IP, PORT)
 msg = ''
+
+activity = ""
 
 signup = []
 idname = ""
@@ -24,9 +41,9 @@ Step1 = 0
 Step2 = 3
 
 tempAuto = "on"
-tempState = "on"
-temp1 = "31"
-temp2 = "낮은온도"
+tempState = ""
+temp1 = ""
+temp2 = ""
 
 weight = "1-2-3-4-5-6-7"
 calAutoState = "on"
@@ -42,6 +59,7 @@ healthStep = "위험"
 healthState = "병원 방문이 필요합니다."
 
 def server():
+	global activity
 	global idname, pwd, catName, age, catKind
 	global enableStepAuto, Step1, Step2
 	global tempAuto, tempState, temp1, temp2
@@ -51,21 +69,18 @@ def server():
 
 	print("thread start")
 
-	# 서버 소켓 설정
-	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-		server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		server_socket.bind(ADDR)  # 주소 바인딩
-		server_socket.listen(3)  # 클라이언트의 요청을 받을 준비
-		client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
-		print("connected")
-
 	# 무한루프 진입
 	while (True):
 		msg = client_socket.recv(1024).decode()
 		if msg!="" :
 			print("[{}] massage : {}".format(client_addr, msg))
 
+			if(msg[:6]=="return"):
+				activity = {'l':'로그인','m':'메뉴'}.get(msg[7],'end')
+				print('return {}!'.format(activity))
+
 			if(msg[:5]=="회원가입,"):
+				activity = "로그인"
 				signup = msg.split(",",5)
 				print("회원가입 : ",signup)
 				idname = signup[1]
@@ -74,9 +89,11 @@ def server():
 				age = signup[4]
 				catKind = signup[5]
 			elif(msg=="로그인,"+idname+","+pwd): ### 로그인 성공할 id, pwd 처리 필요
+				activity = "메뉴"
 				client_socket.sendall("로그인,성공\r\n".encode())
 				print("message back to client : 로그인,성공")
 			elif(msg[:2]=="계단"):
+				activity = "계단"
 				if(msg=="계단"):
 					if(enableStepAuto==0):
 						client_socket.sendall("계단,{},{}\r\n".format(Step1,Step2).encode())
@@ -99,6 +116,7 @@ def server():
 						client_socket.sendall("계단,{},{},auto\r\n".format(Step1,Step2).encode())
 						print("message back to client : 계단,{},{},auto".format(Step1,Step2))
 			elif(msg[:2]=="온도"):
+				activity = "온도"
 				if(msg=="온도,on"):
 					tempAuto = "off"
 					tempState = "ON"
@@ -116,6 +134,7 @@ def server():
 					print("message back to client : 온도,{},{}".format(temp1,temp2))
 					print("tempState : auto/{}".format(tempState))
 			elif(msg[:2]=="체중"):
+				activity = "체중"
 				if(msg=="체중"):
 					if(calAutoState=="off"):
 						client_socket.sendall("체중,{},{},{},{}\r\n".format(weight,cal,feed,feednum).encode())
@@ -151,6 +170,7 @@ def server():
 					client_socket.sendall("체중,수동,{}\r\n".format(feednum).encode())
 					print("message back to client : 체중,수동,{}".format(feednum))
 			elif(msg[:2]=="운동"):
+				activity = "운동"
 				if(msg=="운동"):
 					client_socket.sendall("운동,{},{}\r\n".format(playcount,snack).encode())
 					print("message back to client : 운동,{},{}".format(playcount,snack))
@@ -167,14 +187,16 @@ def server():
 					client_socket.sendall("운동,{}\r\n".format(snack).encode())
 					print("message back to client : 운동,{}".format(snack))
 			elif(msg=="건강"):
+				activity = "건강"
 				client_socket.sendall("건강,{},{},{}\r\n".format(health,healthStep,healthState).encode())
 				print("message back to client : 건강,{},{},{}".format(health,healthStep,healthState))
 			elif(msg[:2]=="정보"):
+				activity = "정보"
 				if(msg=="정보"):
 					client_socket.sendall("정보,{},{},{}\r\n".format(catName,age,catKind).encode())
 					print("message back to client : 정보,{},{},{}".format(catName,age,catKind))
 				elif(msg=="정보,cancel"):
-					pass
+					activity = "메뉴"
 				else:
 					signup = msg.split(",",3)
 					print("정보 변경 : ",signup)
@@ -185,16 +207,69 @@ def server():
 					print("message back to client : 정보,{},{},{}".format(catName,age,catKind))
 	client_socket.close()  # 클라이언트 소켓 종료
 
+print("server start")
+
+# 서버 소켓 설정
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	server_socket.bind(ADDR)  # 주소 바인딩
+	server_socket.listen(3)  # 클라이언트의 요청을 받을 준비
+	client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
+	print("connected")
+	activity = "로그인"
+
 t=threading.Thread(target=server, daemon=True)
 t.start()
 
 # main
 while True:
 	try:
-		pass
+		temp_amb = sensor.get_ambient()
+		temp_obj = sensor.get_object_1()
+		print("Ambient Temperature :",temp_amb)
+		print("Object Temperature :" ,temp_obj)
+
+		temp1 = temp_obj
+
+		if(temp_obj>35):
+			temp2 = "높은온도"
+		elif (temp_obj>25) and (temp_obj<=35):
+			temp2 = "적정온도"
+		else:
+			temp2 = "낮은온도"
+
+		if(tempAuto == "on"):
+			if(temp2=="높은온도" or temp2=="적정온도"):
+				tempState = "OFF"
+			else:
+				tempState = "ON"
+			if(activity=="온도"):
+				client_socket.sendall("온도,{},{},auto/{}\r\n".format(temp1,temp2,tempState).encode())
+				print("message back to client : 온도,{},{}".format(temp1,temp2))
+				print("tempState : auto/{}".format(tempState))
+			print("온도 : 자동 mode 실행중!!")
+
+		else:
+			if(activity=="온도"):
+				client_socket.sendall("온도,{},{},{}\r\n".format(temp1,temp2,tempState).encode())
+				print("message back to client : 온도,{},{}".format(temp1,temp2))
+				print("tempState : {}".format(tempState))
+			print("온도 : 수동 mode 실행중!!")
+
+		if(tempState == "OFF"):
+			GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 off
+		else:
+			GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 on
+
+		print("test {}!".format(activity))
+
+		time.sleep(5)
+
 	except KeyboardInterrupt:
 		# Ctrl + C
 		GPIO.cleanup()
 		sys.exit()
 	except:
 		print("problem!!")
+
+bus.close()
