@@ -4,6 +4,7 @@ import sys
 import RPi.GPIO as GPIO
 import socket
 import threading
+import pymysql
 
 # temp
 import time
@@ -26,6 +27,9 @@ PORT = 35000
 SIZE = 1024
 ADDR = (IP, PORT)
 msg = ''
+
+conn=pymysql.connect(host='localhost', user='root', password='1234', db='cat_db', charset='utf8')
+cur=conn.cursor()
 
 activity = ""
 
@@ -67,6 +71,16 @@ def server():
 	global playcount, snack
 	global health, healthStep, healthState
 
+	print("server start")
+	# 서버 소켓 설정
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+		server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		server_socket.bind(ADDR)  # 주소 바인딩
+		server_socket.listen(3)  # 클라이언트의 요청을 받을 준비
+		client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
+		print("connected")
+		activity = "로그인"
+
 	print("thread start")
 
 	# 무한루프 진입
@@ -78,20 +92,55 @@ def server():
 			if(msg[:6]=="return"):
 				activity = {'l':'로그인','m':'메뉴'}.get(msg[7],'end')
 				print('return {}!'.format(activity))
+				if(activity=="로그인"):
+					idname = ""
+					pwd = ""
+					catName = ""
+					age = ""
+					catKind = ""
 
 			if(msg[:5]=="회원가입,"):
 				activity = "로그인"
 				signup = msg.split(",",5)
 				print("회원가입 : ",signup)
-				idname = signup[1]
-				pwd = signup[2]
-				catName = signup[3]
-				age = signup[4]
-				catKind = signup[5]
-			elif(msg=="로그인,"+idname+","+pwd): ### 로그인 성공할 id, pwd 처리 필요
-				activity = "메뉴"
-				client_socket.sendall("로그인,성공\r\n".encode())
-				print("message back to client : 로그인,성공")
+
+				cur.execute("select id from catinfo;")
+				rows = cur.fetchall()
+				checkid = []
+				for row in rows:
+					checkid.append(row[0])
+				if(idname in checkid):
+					print("아이디 존재, 다른 아이디 생성 해야됨!")
+				else:
+					cur.execute("INSERT INTO catinfo(id,pwd,name,age,breed) VALUES('"+signup[1]+"','"+signup[2]+"','"+signup[3]+"',"+signup[4]+",'"+signup[5]+"');")
+					cur.execute("create table "+idname+" (select * from catdata);")
+					conn.commit()
+					print("아이디 생성됨!")
+			elif(msg[:4]=="로그인,"):
+				idpwd = msg.split(",",2)
+				cur.execute("select id,pwd,name,age,breed from catinfo;")
+				rows = cur.fetchall()
+				checkid = []
+				checkpwd = []
+				for row in rows:
+					checkid.append(row[0])
+					checkpwd.append(row[1])
+				print("checkid = ",checkid, ", checkpwd = ",checkpwd)
+				if(idpwd[1] in checkid):
+					index = checkid.index(idpwd[1])
+					if(checkpwd[index]==idpwd[2]):
+						activity = "메뉴"
+						client_socket.sendall("로그인,성공\r\n".encode())
+						print("message back to client : 로그인,성공")
+						idname = idpwd[1]
+						pwd = idpwd[2]
+						catName = rows[0][2]
+						age = rows[0][3]
+						catKind = rows[0][4]
+					else:
+						print("로그인 실패 : 해당하는 패스워드가 아님")
+				else:
+					print("로그인 실패 : 해당하는 아이디 없음")
 			elif(msg[:2]=="계단"):
 				activity = "계단"
 				if(msg=="계단"):
@@ -200,13 +249,16 @@ def server():
 				else:
 					signup = msg.split(",",3)
 					print("정보 변경 : ",signup)
+					cur.execute("update catinfo set name='"+signup[1]+"', age="+signup[2]+", breed='"+signup[3]+"' where id='"+idname+"';")
+					conn.commit()
+
 					catName = signup[1]
 					age = signup[2]
 					catKind = signup[3]
 					client_socket.sendall("정보,{},{},{}\r\n".format(catName,age,catKind).encode())
 					print("message back to client : 정보,{},{},{}".format(catName,age,catKind))
 	client_socket.close()  # 클라이언트 소켓 종료
-
+'''
 print("server start")
 
 # 서버 소켓 설정
@@ -217,7 +269,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
 	client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
 	print("connected")
 	activity = "로그인"
-
+'''
 t=threading.Thread(target=server, daemon=True)
 t.start()
 
