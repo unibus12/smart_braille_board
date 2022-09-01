@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="#FFECB3">
+    android:background="#FFECB3"
+    android:gravity="center">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -123,7 +124,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="나이: "
+            android:text="개월수: "
             android:textColor="#FFFFFF"
             android:textSize="20dp"/>
 
@@ -133,7 +134,7 @@
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
             android:textSize="20dp"
-            android:hint="나이(개월수)를 입력하세요"
+            android:hint="개월수를 입력하세요"
             />
     </LinearLayout>
 
@@ -161,7 +162,7 @@
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
             android:textSize="20dp"
-            android:hint="나이(개월수)를 입력하세요"
+            android:hint="묘종을 입력하세요"
             />
     </LinearLayout>
 
@@ -170,6 +171,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <Button
+            android:id="@+id/sign_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="확인"
@@ -179,6 +181,7 @@
             />
 
         <Button
+            android:id="@+id/sign_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="취소"
