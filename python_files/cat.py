@@ -28,7 +28,7 @@ SIZE = 1024
 ADDR = (IP, PORT)
 msg = ''
 
-conn=pymysql.connect(host='localhost', user='root', password='1234', db='cat_db', charset='utf8')
+conn=pymysql.connect(host='localhost', user='root', password='1234', db='catdb', charset='utf8')
 cur=conn.cursor()
 
 activity = ""
@@ -51,12 +51,12 @@ temp2 = ""
 
 weight = "1-2-3-4-5-6-7"
 calAutoState = "on"
-cal = "고열량"
-feed = "자동"
+cal = "high"
+feed = "autofeed"
 feednum = "0"
 
 playcount = "3-2-1-1-3-2-1"
-snack = "주기"
+snack = "on"
 
 health = "2-3-1-3-3-2-2"
 healthStep = "위험"
@@ -79,7 +79,7 @@ def server():
 		server_socket.listen(3)  # 클라이언트의 요청을 받을 준비
 		client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
 		print("connected")
-		activity = "로그인"
+		activity = "login"
 
 	print("thread start")
 
@@ -90,19 +90,19 @@ def server():
 			print("[{}] massage : {}".format(client_addr, msg))
 
 			if(msg[:6]=="return"):
-				activity = {'l':'로그인','m':'메뉴'}.get(msg[7],'end')
+				activity = {'l':'login','m':'menu'}.get(msg[7],'end')
 				print('return {}!'.format(activity))
-				if(activity=="로그인"):
+				if(activity=="login"):
 					idname = ""
 					pwd = ""
 					catName = ""
 					age = ""
 					catKind = ""
 
-			if(msg[:5]=="회원가입,"):
-				activity = "로그인"
+			if(msg[:5]=="signup,"):
+				activity = "login"
 				signup = msg.split(",",5)
-				print("회원가입 : ",signup)
+				print("signup : ",signup)
 
 				cur.execute("select id from catinfo;")
 				rows = cur.fetchall()
@@ -116,7 +116,7 @@ def server():
 					cur.execute("create table "+idname+" (select * from catdata);")
 					conn.commit()
 					print("아이디 생성됨!")
-			elif(msg[:4]=="로그인,"):
+			elif(msg[:4]=="login,"):
 				idpwd = msg.split(",",2)
 				cur.execute("select id,pwd,name,age,breed from catinfo;")
 				rows = cur.fetchall()
@@ -129,29 +129,31 @@ def server():
 				if(idpwd[1] in checkid):
 					index = checkid.index(idpwd[1])
 					if(checkpwd[index]==idpwd[2]):
-						activity = "메뉴"
-						client_socket.sendall("로그인,성공\r\n".encode())
-						print("message back to client : 로그인,성공")
+						activity = "menu"
+						client_socket.sendall("login,success\r\n".encode())
+						print("message back to client : login,success")
 						idname = idpwd[1]
 						pwd = idpwd[2]
 						catName = rows[0][2]
 						age = rows[0][3]
 						catKind = rows[0][4]
 					else:
-						print("로그인 실패 : 해당하는 패스워드가 아님")
+						client_socket.sendall("login,fail\r\n".encode())
+						print("login fail : 해당하는 패스워드가 아님")
 				else:
-					print("로그인 실패 : 해당하는 아이디 없음")
-			elif(msg[:2]=="계단"):
-				activity = "계단"
-				if(msg=="계단"):
+					client_socket.sendall("login,fail\r\n".encode())
+					print("login fail : 해당하는 아이디 없음")
+			elif(msg[:2]=="step"):
+				activity = "step"
+				if(msg=="step"):
 					if(enableStepAuto==0):
-						client_socket.sendall("계단,{},{}\r\n".format(Step1,Step2).encode())
-						print("message back to client : 계단,{},{}".format(Step1,Step2))
+						client_socket.sendall("step,{},{}\r\n".format(Step1,Step2).encode())
+						print("message back to client : step,{},{}".format(Step1,Step2))
 					else:
-						client_socket.sendall("계단,{},{},auto\r\n".format(Step1,Step2).encode())
-						print("message back to client : 계단,{},{},auto".format(Step1,Step2))
-				elif(msg[0:3]=="계단,"):
-					if(msg=="계단,auto"):
+						client_socket.sendall("step,{},{},auto\r\n".format(Step1,Step2).encode())
+						print("message back to client : step,{},{},auto".format(Step1,Step2))
+				elif(msg[0:3]=="step,"):
+					if(msg=="step,auto"):
 						enableStepAuto = 1
 					else:
 						enableStepAuto = 0
@@ -159,93 +161,93 @@ def server():
 					if(enableStepAuto==0):
 						Step1 = msg[3]
 						Step2 = msg[5]
-						client_socket.sendall("계단,{},{}\r\n".format(Step1,Step2).encode())
-						print("message back to client : 계단,{},{}".format(Step1,Step2))
+						client_socket.sendall("step,{},{}\r\n".format(Step1,Step2).encode())
+						print("message back to client : step,{},{}".format(Step1,Step2))
 					else:
-						client_socket.sendall("계단,{},{},auto\r\n".format(Step1,Step2).encode())
-						print("message back to client : 계단,{},{},auto".format(Step1,Step2))
-			elif(msg[:2]=="온도"):
-				activity = "온도"
-				if(msg=="온도,on"):
+						client_socket.sendall("step,{},{},auto\r\n".format(Step1,Step2).encode())
+						print("message back to client : step,{},{},auto".format(Step1,Step2))
+			elif(msg[:2]=="temp"):
+				activity = "temp"
+				if(msg=="temp,on"):
 					tempAuto = "off"
 					tempState = "ON"
-				elif(msg=="온도,off"):
+				elif(msg=="temp,off"):
 					tempAuto = "off"
 					tempState = "OFF"
-				elif(msg=="온도,auto"):
+				elif(msg=="temp,auto"):
 					tempAuto = "on"
 				if(tempAuto=="off"):
-					client_socket.sendall("온도,{},{},{}\r\n".format(temp1,temp2,tempState).encode())
-					print("message back to client : 온도,{},{}".format(temp1,temp2))
+					client_socket.sendall("temp,{},{},{}\r\n".format(temp1,temp2,tempState).encode())
+					print("message back to client : temp,{},{}".format(temp1,temp2))
 					print("tempState : {}".format(tempState))
 				else:
-					client_socket.sendall("온도,{},{},auto/{}\r\n".format(temp1,temp2,tempState).encode())
-					print("message back to client : 온도,{},{}".format(temp1,temp2))
+					client_socket.sendall("temp,{},{},auto/{}\r\n".format(temp1,temp2,tempState).encode())
+					print("message back to client : temp,{},{}".format(temp1,temp2))
 					print("tempState : auto/{}".format(tempState))
-			elif(msg[:2]=="체중"):
-				activity = "체중"
-				if(msg=="체중"):
+			elif(msg[:2]=="weight"):
+				activity = "weight"
+				if(msg=="weight"):
 					if(calAutoState=="off"):
-						client_socket.sendall("체중,{},{},{},{}\r\n".format(weight,cal,feed,feednum).encode())
-						print("message back to client : 체중,{},{},{},{}".format(weight,cal,feed,feednum))
+						client_socket.sendall("weight,{},{},{},{}\r\n".format(weight,cal,feed,feednum).encode())
+						print("message back to client : weight,{},{},{},{}".format(weight,cal,feed,feednum))
 					else:
-						client_socket.sendall("체중,{},auto,{},{},{}\r\n".format(weight,cal,feed,feednum).encode())
-						print("message back to client : 체중,{},auto,{},{},{}".format(weight,cal,feed,feednum))
-				elif(msg=="체중,저열량"):
+						client_socket.sendall("weight,{},auto,{},{},{}\r\n".format(weight,cal,feed,feednum).encode())
+						print("message back to client : weight,{},auto,{},{},{}".format(weight,cal,feed,feednum))
+				elif(msg=="weight,low"):
 					calAutoState="off"
-					cal = "저열량"
-					client_socket.sendall("체중,{}\r\n".format(cal).encode())
-					print("message back to client : 체중,{}".format(cal))
-				elif(msg=="체중,고열량"):
+					cal = "low"
+					client_socket.sendall("weight,{}\r\n".format(cal).encode())
+					print("message back to client : weight,{}".format(cal))
+				elif(msg=="weight,high"):
 					calAutoState="off"
-					cal = "고열량"
-					client_socket.sendall("체중,{}\r\n".format(cal).encode())
-					print("message back to client : 체중,{}".format(cal))
-				elif(msg=="체중,auto"):
+					cal = "high"
+					client_socket.sendall("weight,{}\r\n".format(cal).encode())
+					print("message back to client : weight,{}".format(cal))
+				elif(msg=="weight,autocal"):
 					calAutoState="on"
-					client_socket.sendall("체중,auto,{}\r\n".format(cal).encode())
-					print("message back to client : 체중,auto,{}".format(cal))
-				elif(msg=="체중,수동"):
-					feed = "수동"
-					client_socket.sendall("체중,{},{}\r\n".format(feed,feednum).encode())
-					print("message back to client : 체중,{},{}".format(feed,feednum))
-				elif(msg=="체중,자동"):
-					feed = "자동"
-					client_socket.sendall("체중,{},{}\r\n".format(feed,feednum).encode())
-					print("message back to client : 체중,{},{}".format(feed,feednum))
+					client_socket.sendall("weight,autocal,{}\r\n".format(cal).encode())
+					print("message back to client : weight,autocal,{}".format(cal))
+				elif(msg=="weight,nonautofeed"):
+					feed = "nonautofeed"
+					client_socket.sendall("weight,{},{}\r\n".format(feed,feednum).encode())
+					print("message back to client : weight,{},{}".format(feed,feednum))
+				elif(msg=="weight,autofeed"):
+					feed = "autofeed"
+					client_socket.sendall("weight,{},{}\r\n".format(feed,feednum).encode())
+					print("message back to client : weight,{},{}".format(feed,feednum))
 				elif(msg[3]>="0" or msg[3]<="3"):
-					feed = "수동"
+					feed = "nonautofeed"
 					feednum = msg[3]
-					client_socket.sendall("체중,수동,{}\r\n".format(feednum).encode())
-					print("message back to client : 체중,수동,{}".format(feednum))
-			elif(msg[:2]=="운동"):
-				activity = "운동"
-				if(msg=="운동"):
-					client_socket.sendall("운동,{},{}\r\n".format(playcount,snack).encode())
-					print("message back to client : 운동,{},{}".format(playcount,snack))
-				elif(msg=="운동,주기"):
-					snack = "주기"
-					client_socket.sendall("운동,{}\r\n".format(snack).encode())
-					print("message back to client : 운동,{}".format(snack))
-				elif(msg=="운동,안주기"):
-					snack = "안주기"
-					client_socket.sendall("운동,{}\r\n".format(snack).encode())
-					print("message back to client : 운동,{}".format(snack))
-				elif(msg=="운동,auto"):
+					client_socket.sendall("weight,{},{}\r\n".format(feed,feednum).encode())
+					print("message back to client : weight,{},{}".format(feed,feednum))
+			elif(msg[:2]=="play"):
+				activity = "play"
+				if(msg=="play"):
+					client_socket.sendall("play,{},{}\r\n".format(playcount,snack).encode())
+					print("message back to client : play,{},{}".format(playcount,snack))
+				elif(msg=="play,on"):
+					snack = "on"
+					client_socket.sendall("play,{}\r\n".format(snack).encode())
+					print("message back to client : play,{}".format(snack))
+				elif(msg=="play,off"):
+					snack = "off"
+					client_socket.sendall("play,{}\r\n".format(snack).encode())
+					print("message back to client : play,{}".format(snack))
+				elif(msg=="play,auto"):
 					snack = "auto/"+snack
-					client_socket.sendall("운동,{}\r\n".format(snack).encode())
-					print("message back to client : 운동,{}".format(snack))
-			elif(msg=="건강"):
-				activity = "건강"
-				client_socket.sendall("건강,{},{},{}\r\n".format(health,healthStep,healthState).encode())
-				print("message back to client : 건강,{},{},{}".format(health,healthStep,healthState))
-			elif(msg[:2]=="정보"):
-				activity = "정보"
-				if(msg=="정보"):
-					client_socket.sendall("정보,{},{},{}\r\n".format(catName,age,catKind).encode())
-					print("message back to client : 정보,{},{},{}".format(catName,age,catKind))
-				elif(msg=="정보,cancel"):
-					activity = "메뉴"
+					client_socket.sendall("play,{}\r\n".format(snack).encode())
+					print("message back to client : play,{}".format(snack))
+			elif(msg=="health"):
+				activity = "health"
+				client_socket.sendall("health,{},{},{}\r\n".format(health,healthStep,healthState).encode())
+				print("message back to client : health,{},{},{}".format(health,healthStep,healthState))
+			elif(msg[:2]=="info"):
+				activity = "info"
+				if(msg=="info"):
+					client_socket.sendall("info,{},{},{}\r\n".format(catName,age,catKind).encode())
+					print("message back to client : info,{},{},{}".format(catName,age,catKind))
+				elif(msg=="info,cancel"):
+					activity = "menu"
 				else:
 					signup = msg.split(",",3)
 					print("정보 변경 : ",signup)
@@ -255,68 +257,58 @@ def server():
 					catName = signup[1]
 					age = signup[2]
 					catKind = signup[3]
-					client_socket.sendall("정보,{},{},{}\r\n".format(catName,age,catKind).encode())
-					print("message back to client : 정보,{},{},{}".format(catName,age,catKind))
+					client_socket.sendall("info,{},{},{}\r\n".format(catName,age,catKind).encode())
+					print("message back to client : info,{},{},{}".format(catName,age,catKind))
 	client_socket.close()  # 클라이언트 소켓 종료
-'''
-print("server start")
 
-# 서버 소켓 설정
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	server_socket.bind(ADDR)  # 주소 바인딩
-	server_socket.listen(3)  # 클라이언트의 요청을 받을 준비
-	client_socket, client_addr = server_socket.accept()  # 수신대기, 접속한 클라이언트 정보 (소켓, 주소) 반환
-	print("connected")
-	activity = "로그인"
-'''
-t=threading.Thread(target=server, daemon=True)
+t=threading.Thread(target=server)
 t.start()
+
+def temp_mode():
+	temp_amb = sensor.get_ambient()
+	temp_obj = sensor.get_object_1()
+	print("Ambient Temperature :",temp_amb)
+	print("Object Temperature :" ,temp_obj)
+
+	temp1 = temp_obj
+
+	if(temp_obj>35):
+		temp2 = "high"
+	elif (temp_obj>25) and (temp_obj<=35):
+		temp2 = "good"
+	else:
+		temp2 = "low"
+
+	if(tempAuto == "on"):
+		if(temp2=="high" or temp2=="good"):
+			tempState = "OFF"
+		else:
+			tempState = "ON"
+		if(activity=="temp"):
+			client_socket.sendall("temp,{},{},auto/{}\r\n".format(temp1,temp2,tempState).encode())
+			print("message back to client : temp,{},{}".format(temp1,temp2))
+			print("tempState : auto/{}".format(tempState))
+		print("temp : auto mode 실행중!!")
+	else:
+		if(activity=="temp"):
+			client_socket.sendall("temp,{},{},{}\r\n".format(temp1,temp2,tempState).encode())
+			print("message back to client : temp,{},{}".format(temp1,temp2))
+			print("tempState : {}".format(tempState))
+		print("temp : nonauto mode 실행중!!")
+
+	if(tempState == "OFF"):
+		GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 off
+	else:
+		GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 on
+
+	print("test {}!".format(activity))
+	time.sleep(5)
 
 # main
 while True:
 	try:
-		temp_amb = sensor.get_ambient()
-		temp_obj = sensor.get_object_1()
-		print("Ambient Temperature :",temp_amb)
-		print("Object Temperature :" ,temp_obj)
-
-		temp1 = temp_obj
-
-		if(temp_obj>35):
-			temp2 = "높은온도"
-		elif (temp_obj>25) and (temp_obj<=35):
-			temp2 = "적정온도"
-		else:
-			temp2 = "낮은온도"
-
-		if(tempAuto == "on"):
-			if(temp2=="높은온도" or temp2=="적정온도"):
-				tempState = "OFF"
-			else:
-				tempState = "ON"
-			if(activity=="온도"):
-				client_socket.sendall("온도,{},{},auto/{}\r\n".format(temp1,temp2,tempState).encode())
-				print("message back to client : 온도,{},{}".format(temp1,temp2))
-				print("tempState : auto/{}".format(tempState))
-			print("온도 : 자동 mode 실행중!!")
-
-		else:
-			if(activity=="온도"):
-				client_socket.sendall("온도,{},{},{}\r\n".format(temp1,temp2,tempState).encode())
-				print("message back to client : 온도,{},{}".format(temp1,temp2))
-				print("tempState : {}".format(tempState))
-			print("온도 : 수동 mode 실행중!!")
-
-		if(tempState == "OFF"):
-			GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 off
-		else:
-			GPIO.output(temp_pin, True) # 변경 필요 - 발열 패드 설정 on
-
-		print("test {}!".format(activity))
-
-		time.sleep(5)
-
+		#temp_mode()
+		pass
 	except KeyboardInterrupt:
 		# Ctrl + C
 		GPIO.cleanup()
