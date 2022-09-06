@@ -5,6 +5,15 @@ import RPi.GPIO as GPIO
 import socket
 import threading
 import pymysql
+from gpiozero import Motor
+import time
+
+#database
+conn=None
+cur=None
+
+conn=pymysql.connect(host='localhost', user='root', password='1234', db='mydb', charset='utf8')
+cur=conn.cursor()
 
 # temp
 import time
@@ -21,6 +30,23 @@ temp_pin = 18 # GPIO.BOARD = 12
 GPIO.setup(temp_pin, GPIO.OUT)
 GPIO.output(temp_pin, False)
 
+#엑추에이터
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings (False)
+
+GPIO.setup(4, GPIO.OUT) # 7
+GPIO.setup(23, GPIO.OUT) # 16
+
+GPIO.setup(17, GPIO.OUT) # 11
+GPIO.setup(27, GPIO.OUT) # 13
+
+GPIO.setup(26, GPIO.OUT) # 37
+GPIO.setup(20, GPIO.OUT) # 38
+
+motor = Motor(forward=4, backward=17)
+motor1 = Motor(forward=27, backward=23)
+motor2 = Motor(forward=26, backward=20)
+
 # hx711
 EMULATE_HX711=False
 
@@ -29,13 +55,6 @@ if not EMULATE_HX711:
 	from hx711 import HX711
 else:
 	from emulated_hx711 import HX711
-
-def cleanAndExit():
-	print("Cleaning...")
-	if not EMULATE_HX711:
-		GPIO.cleanup()
-		print("Bye!")
-		sys.exit()
 
 hx1 = HX711(24,9) # 5kg
 #hx2 = HX711(25,11) # 5kg
@@ -61,30 +80,9 @@ hx1.tare()
 #hx2.tare()
 #hx3.tare()
 hx4.tare()
-
 print("Tare done! Add weight now...")
 
-def hx711get():
-	val1 = hx1.get_weight(5)
-	#val2 = hx2.get_weight(5)
-	#val3 = hx3.get_weight(5)
-	val4 = hx4.get_weight(5)
-
-	print('val1 = ', val1)
-	#print('val2 = ', val2)
-	#print('val3 = ', val3)
-	print('val4 = ', val4)
-
-	hx1.power_down()
-	hx1.power_up()
-	#hx2.power_down()
-	#hx2.power_up()
-	#hx3.power_down()
-	#hx3.power_up()
-	hx4.power_down()
-	hx4.power_up()
-
-	time.sleep(0.1)
+val_weight = 0
 
 # 통신 정보 설정
 IP = ''
@@ -368,12 +366,112 @@ def temp_mode():
 
 	print("test {}!".format(activity))
 	time.sleep(5)
+    
+    
+def cleanAndExit():
+	print("Cleaning...")
+	if not EMULATE_HX711:
+		GPIO.cleanup()
+		print("Bye!")
+		sys.exit()
+
+def maria_set():
+	#cur.execute('select weight from '+cat+";")
+	rows = cur.fetchall()
+
+	for row in rows:
+		weight.append(row[0])
+
+
+def hx711get():
+	val1 = hx1.get_weight(5)
+	#val2 = hx2.get_weight(5)
+	#val3 = hx3.get_weight(5)
+	val4 = hx4.get_weight(5)
+
+	print('val1 = ', val1)
+	#print('val2 = ', val2)
+	#print('val3 = ', val3)
+	print('val4 = ', val4)
+
+	hx1.power_down()
+	hx1.power_up()
+	#hx2.power_down()
+	#hx2.power_up()
+	#hx3.power_down()
+	#hx3.power_up()
+	hx4.power_down()
+	hx4.power_up()
+
+	time.sleep(0.1)
+
+	
+
+def outact(s, l): # fin 76
+	print(f"step{s} out{l}")
+	if(s==1):
+		motor.backward(speed=1)  # 1:03
+		motor1.backward(speed=1) # 1:03
+		time.sleep(l*13)#숫자 수정 필요
+		motor.stop()
+		motor1.stop()
+	else:
+		motor2.backward(speed=1)
+		time.sleep(l*16)#숫자 수정 필요
+		motor2.stop()
+
+def inact(s, l): # fin 61
+	print(f"step{s} in{l}")
+	if(s==1):
+		motor.forward(speed=1)  # 1:03
+		motor1.forward(speed=1) # 1:03
+		time.sleep(l*10)#숫자 수정 필요
+		motor.stop()
+		motor1.stop()
+	else:
+		motor2.forward(speed=1)
+		time.sleep(l*11)#숫자 수정 필요
+		motor2.stop()
+
+
+def act_run():
+	if(enableStepAuto == 0):
+		Step11 = Step1
+		Step22 = Step2
+	else:#Auto
+		#나이: 개월/년 단위통일 수정 필요
+		if((age<8m)or(age>10y)):#8개월 이하 10살 이상
+			Step11 = 2
+			Step22 = 2
+        else:
+			Step11 = 3
+			Step22 = 3
+		client_socket.sendall("step,auto,{},{}\r\n".format(Step11,Step22).encode())
+    
+    #old_s1, old_s2는 데이터베이스에서 가져온 현재 계단 높이
+    #s1, s2는 움직여야 하는 간격
+	s1 = Step11-old_s1 
+	s2 = Step22-old_s2
+	if(s1!=0):
+		if(s1>0):#s1 out
+			outact(1, s1)
+		else:#s1 in
+			inact(1, abs(s1))
+	if(s2!=0):
+		if(s2>0):#s2 out
+			outact(1, s1)
+		else:#s2 in
+			inact(1, abs(s1))
+	#Step11, Step22 데이터베이스에 저장 코드 추가
+
 
 # main
 while True:
 	try:
-		#temp_mode()
+		temp_mode()
 		hx711get()
+		act_run()
+        
 		#pass
 	except (KeyboardInterrupt, SystemExit):
 		# Ctrl + c
